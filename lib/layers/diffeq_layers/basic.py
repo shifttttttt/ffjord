@@ -81,6 +81,8 @@ class ConcatSquashLinear(nn.Module):
         self._hyper_gate = nn.Linear(1, dim_out)
 
     def forward(self, t, x):
+        # 输入两个，一个是时间一个是数据
+        # 这里是输入时间和数据的返回数据
         return self._layer(x) * torch.sigmoid(self._hyper_gate(t.view(1, 1))) \
             + self._hyper_bias(t.view(1, 1))
 

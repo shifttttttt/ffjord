@@ -94,6 +94,8 @@ NONLINEARITIES = {
 class ODEnet(nn.Module):
     """
     Helper class to make neural nets for use in continuous normalizing flows
+    输入：t，x
+    输出:dx
     """
 
     def __init__(
@@ -114,6 +116,8 @@ class ODEnet(nn.Module):
                 "concatcoord": diffeq_layers.ConcatCoordConv2d,
             }[layer_type]
         else:
+            # hidden_dims:[64,64,64]
+            # 这里生成一个比hidden_dims多一个的None列表
             strides = [None] * (len(hidden_dims) + 1)
             base_layer = {
                 "ignore": diffeq_layers.IgnoreLinear,
@@ -130,7 +134,7 @@ class ODEnet(nn.Module):
         layers = []
         activation_fns = []
         hidden_shape = input_shape
-
+        # strides在这里看是一个指定参数的列表，指定了每一层的参数
         for dim_out, stride in zip(hidden_dims + (input_shape[0],), strides):
             if stride is None:
                 layer_kwargs = {}
@@ -153,6 +157,9 @@ class ODEnet(nn.Module):
                 hidden_shape[1], hidden_shape[2] = hidden_shape[1] // 2, hidden_shape[2] // 2
             elif stride == -2:
                 hidden_shape[1], hidden_shape[2] = hidden_shape[1] * 2, hidden_shape[2] * 2
+
+         # 这里生成了两个序列，一个是线性变化的Layers序列，一个是激活函数序列。
+         # 在前向计算时候交替应用两个序列
 
         self.layers = nn.ModuleList(layers)
         self.activation_fns = nn.ModuleList(activation_fns[:-1])
@@ -288,7 +295,7 @@ class ODEfunc(nn.Module):
         t = torch.tensor(t).type_as(y)
         batchsize = y.shape[0]
 
-        # Sample and fix the noise.
+        # Sample and fix the noise. to cal tr,rademacher control if sample new _e
         if self._e is None:
             if self.rademacher:
                 self._e = sample_rademacher_like(y)
@@ -300,6 +307,7 @@ class ODEfunc(nn.Module):
             t.requires_grad_(True)
             for s_ in states[2:]:
                 s_.requires_grad_(True)
+            #     这里输入怎么是多个？
             dy = self.diffeq(t, y, *states[2:])
             # Hack for 2D data to use brute force divergence computation.
             if not self.training and dy.view(dy.shape[0], -1).shape[1] == 2:

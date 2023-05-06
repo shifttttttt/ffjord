@@ -158,10 +158,12 @@ def get_regularization(model, regularization_coeffs):
 
 
 def build_model_tabular(args, dims, regularization_fns=None):
-
+    # 获取隐层维度
     hidden_dims = tuple(map(int, args.dims.split("-")))
 
     def build_cnf():
+        # 这个应该是定义了微分函数，用于计算导数
+        # 输入时间和y得到dz
         diffeq = layers.ODEnet(
             hidden_dims=hidden_dims,
             input_shape=(dims,),
@@ -170,12 +172,15 @@ def build_model_tabular(args, dims, regularization_fns=None):
             layer_type=args.layer_type,
             nonlinearity=args.nonlinearity,
         )
+        # 这里是根据dz计算dlogpz_dt的
         odefunc = layers.ODEfunc(
             diffeq=diffeq,
             divergence_fn=args.divergence_fn,
             residual=args.residual,
             rademacher=args.rademacher,
         )
+        # 这里对ODE进行积分计算得到结果，调用odeint，使用odefunc进行积分
+        # 这里返回z_t, logpz_t，那么odefunc返回的是(dz_dt, dlogpz_dt)，输入为初值
         cnf = layers.CNF(
             odefunc=odefunc,
             T=args.time_length,
@@ -184,8 +189,9 @@ def build_model_tabular(args, dims, regularization_fns=None):
             solver=args.solver,
         )
         return cnf
-
+    # 堆叠层数
     chain = [build_cnf() for _ in range(args.num_blocks)]
+    # 添加norm层
     if args.batch_norm:
         bn_layers = [layers.MovingBatchNorm1d(dims, bn_lag=args.bn_lag) for _ in range(args.num_blocks)]
         bn_chain = [layers.MovingBatchNorm1d(dims, bn_lag=args.bn_lag)]
@@ -194,7 +200,7 @@ def build_model_tabular(args, dims, regularization_fns=None):
             bn_chain.append(b)
         chain = bn_chain
     model = layers.SequentialFlow(chain)
-
+    # 这里不知道是干嘛的
     set_cnf_options(args, model)
 
     return model

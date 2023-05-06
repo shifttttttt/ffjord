@@ -37,6 +37,7 @@ parser.add_argument("--num_blocks", type=int, default=1, help='Number of stacked
 parser.add_argument('--time_length', type=float, default=0.5)
 parser.add_argument('--train_T', type=eval, default=True)
 parser.add_argument("--divergence_fn", type=str, default="brute_force", choices=["brute_force", "approximate"])
+# 激活函数类型
 parser.add_argument("--nonlinearity", type=str, default="tanh", choices=odefunc.NONLINEARITIES)
 
 parser.add_argument('--solver', type=str, default='dopri5', choices=SOLVERS)
@@ -51,7 +52,9 @@ parser.add_argument('--test_rtol', type=float, default=None)
 parser.add_argument('--residual', type=eval, default=False, choices=[True, False])
 parser.add_argument('--rademacher', type=eval, default=False, choices=[True, False])
 parser.add_argument('--spectral_norm', type=eval, default=False, choices=[True, False])
+# 是否使用归一化层
 parser.add_argument('--batch_norm', type=eval, default=False, choices=[True, False])
+# 归一化层参数
 parser.add_argument('--bn_lag', type=float, default=0)
 
 parser.add_argument('--niters', type=int, default=10000)
@@ -114,6 +117,7 @@ def compute_loss(args, model, batch_size=None):
     zero = torch.zeros(x.shape[0], 1).to(x)
 
     # transform to z
+    # 这里是z_t0
     z, delta_logp = model(x, zero)
 
     # compute log q(z)
