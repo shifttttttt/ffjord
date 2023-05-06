@@ -227,7 +227,7 @@ def compute_bits_per_dim(x, model):
     logpx_per_dim = torch.sum(logpx) / x.nelement()  # averaged over batches
     bits_per_dim = -(logpx_per_dim - np.log(256)) / np.log(2)
 
-    return bits_per_dim
+    return bits_per_dim.cpu()
 
 
 def create_model(args, data_shape, regularization_fns):
@@ -425,7 +425,7 @@ if __name__ == "__main__":
                     loss = compute_bits_per_dim(x, model)
                     losses.append(loss)
 
-                loss = np.mean(losses.cpu())
+                loss = np.mean(losses)
                 logger.info("Epoch {:04d} | Time {:.4f}, Bit/dim {:.4f}".format(epoch, time.time() - start, loss))
                 if loss < best_loss:
                     best_loss = loss
