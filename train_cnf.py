@@ -425,7 +425,7 @@ if __name__ == "__main__":
                     loss = compute_bits_per_dim(x, model)
                     losses.append(loss)
 
-                loss = np.mean(losses)
+                loss = np.mean(losses.cpu())
                 logger.info("Epoch {:04d} | Time {:.4f}, Bit/dim {:.4f}".format(epoch, time.time() - start, loss))
                 if loss < best_loss:
                     best_loss = loss
