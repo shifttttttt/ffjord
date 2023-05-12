@@ -28,6 +28,7 @@ class ODENVP(nn.Module):
         cnf_kwargs=None,
     ):
         super(ODENVP, self).__init__()
+        # 这个好像是对通道做扩展的
         self.n_scale = min(n_scale, self._calc_n_scale(input_size))
         self.n_blocks = n_blocks
         self.intermediate_dims = intermediate_dims
@@ -46,6 +47,7 @@ class ODENVP(nn.Module):
     def _build_net(self, input_size):
         _, c, h, w = input_size
         transforms = []
+        # 这里为什么暗战n_sacle的数量
         for i in range(self.n_scale):
             transforms.append(
                 StackedCNFLayers(

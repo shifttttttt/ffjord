@@ -177,6 +177,10 @@ class ODEnet(nn.Module):
         # unsqueeze
         for _ in range(self.num_squeeze):
             dx = unsqueeze(dx, 2)
+        # 生成掩码
+        mask = torch.tensor([[1, 0]]).to(dx)
+        dx = mask*dx
+
         return dx
 
 
